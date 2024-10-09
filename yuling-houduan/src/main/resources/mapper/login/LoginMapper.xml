@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yuling.mapper.login.LoginMapper">
+    <resultMap id="LoginResult" type="Login">
+        <result property="jobNumber" column="job_number"/>
+        <result property="name" column="name"/>
+        <result property="gender" column="gender"/>
+        <result property="birthdate" column="birthdate"/>
+        <result property="phone" column="phone"/>
+        <result property="email" column="email"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="active" column="active"/>
+        <result property="bankCard" column="bank_card"/>
+        <result property="positionId" column="position_id"/>
+        <result property="departmentId" column="department_id"/>
+        <result property="avatar" column="avatar"/>
+        <result property="departmentName" column="department_name"/>
+        <result property="positionName" column="position_name"/>
+        <result property="fatherId" column="father_id"/>
+    </resultMap>
+
+    <sql id="selectEmployeeVo">
+        select e.*,
+               d.department_name,
+               p.position_name,
+               d.father_id
+        from employee e
+                 left join department d on e.department_id = d.department_id
+                 left join position p on e.position_id = p.position_id
+    </sql>
+    <!-- 单个员工信息查询 -->
+    <select id="selectEmployeeByJobNumber" parameterType="Long" resultMap="LoginResult">
+        <include refid="selectEmployeeVo"/>
+        where e.job_number = #{jobNumber}
+    </select>
+    <!--  登录验证  -->
+    <select id="loginEmployee" parameterType="Login" resultMap="LoginResult">
+        select e.job_number,e.name,e.gender,e.phone,e.email,e.create_time,e.update_time,e.active,e.password,e.position_id,e.department_id,
+        d.department_name,
+        p.position_name,
+        d.father_id
+        from employee e
+        left join department d on e.department_id = d.department_id
+        left join position p on e.position_id = p.position_id
+        <where>
+            <if test="username != null and username != ''">(job_number = #{username} or phone = #{username})</if>
+            and active = 0
+        </where>
+        limit 1
+    </select>
+    <!--  重置密码，知道原密码的情况下  -->
+    <update id="resetPassword" parameterType="Login">
+        update employee set password = #{newPsd} where job_number = #{jobNumber}
+    </update>
+
+    <!--  忘记密码  -->
+    <update id="forgotPassword" parameterType="Login">
+        update employee set password = #{newPsd} where phone = #{phone}
+    </update>
+</mapper>

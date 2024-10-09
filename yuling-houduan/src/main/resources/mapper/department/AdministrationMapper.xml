@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yuling.mapper.department.AdministrationMapper">
+
+    <!--  部门信息结果集  -->
+    <resultMap id="DepartmentResult" type="Department">
+        <result property="departmentId" column="department_id"/>
+        <result property="departmentName" column="department_name"/>
+        <result property="managerName" column="manager_name"/>
+        <result property="count" column="count"/>
+    </resultMap>
+    <!--  部门人员信息结果集  -->
+    <resultMap id="PeopleResult" type="Employee">
+        <result property="jobNumber" column="job_number"/>
+        <result property="name" column="name"/>
+    </resultMap>
+<!-- 部门信息通用查询 -->
+    <sql id="selectAdministrationVo">
+        select d.*,e.name as manager_name,
+            (select count(*) from employee where department_id = d.department_id) as count
+        from department d left join
+            employee e on d.manager_id = e.job_number
+    </sql>
+
+    <select id="selectAdministrationList" parameterType="Department"  resultMap="DepartmentResult">
+        <include refid="selectAdministrationVo"/>
+        where father_id = 8 and d.department_id != d.father_id
+    </select>
+
+    <!--  查询部门高级职员  -->
+    <select id="selectDepartmentPeople" resultMap="PeopleResult">
+        select job_number,`name` from employee
+        where department_id in (select department_id from department where father_Id = 8)
+          and position_id >= 3
+          and active = 0
+    </select>
+
+    <insert id="insertAdministration" parameterType="Department">
+        insert into department
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="departmentName != null">department_name,</if>
+            <if test="managerId != null">manager_id,</if>
+            father_id
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="departmentName != null">#{departmentName},</if>
+            <if test="managerId != null">#{managerId},</if>
+            8
+        </trim>
+    </insert>
+
+
+    <update id="updateAdministration" parameterType="Department">
+        update department
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="departmentName != null">department_name = #{departmentName},</if>
+            <if test="managerId != null">manager_id = #{managerId},</if>
+        </trim>
+        where department_id = #{departmentId} and father_id = 8
+    </update>
+
+    <delete id="deleteAdministration" parameterType="Long" >
+        delete from department where department_id = #{departmentId} and father_id = 8
+    </delete>
+</mapper>

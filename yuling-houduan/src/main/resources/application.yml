@@ -1,0 +1,53 @@
+# 配置Tomcat服务器相关参数
+server:
+  # 配置Tomcat的URI编码为UTF-8
+  tomcat:
+    uri-encoding: UTF-8
+  # 配置服务器监听的端口号为30920
+  port: 30920
+  # 配置应用程序的上下文路径为根路径
+  servlet:
+    context-path: /
+
+# 配置Spring相关参数
+spring:
+  # 配置数据源相关参数
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver  # 使用新版MySQL驱动
+    url: jdbc:mysql://localhost:3307/yuling_employee?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: yuling
+    password: veauwd177
+
+  # Redis 配置
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  # 配置 Jackson 时间格式
+  jackson:
+    time-zone: Asia/Shanghai
+
+  # 配置文件上传相关参数
+  servlet:
+    multipart:
+      max-file-size: 10MB  # 设置上传文件的最大大小
+      max-request-size: 10MB  # 设置整个请求的最大大小
+      enabled: true  # 启用 multipart 支持
+
+  # 配置静态资源的路径
+  web:
+    resources:
+      static-locations: classpath:/static/, file:/static/
+
+# 配置MyBatis相关参数
+mybatis:
+  mapper-locations: classpath:mapper/*/*.xml
+  type-aliases-package: com.yuling.entity
+
+# 分页插件 PageHelper 的配置
+pagehelper:
+  helper-dialect: mysql
+  reasonable: true
+  support-methods-arguments: true
+  params: count=countSql

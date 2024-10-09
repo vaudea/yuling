@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yuling.mapper.notice.NoticeMapper">
+    <resultMap id="NoticeResult" type="Notice">
+        <result property="id" column="id"/>
+        <result property="noticeContent" column="notice_content"/>
+        <result property="noticeTitle" column="notice_title"/>
+        <result property="createTime" column="create_time"/>
+        <result property="unitDepartment" column="department_name"/>
+        <result property="noticeType" column="notice_type"/>
+        <result property="status" column="status"/>
+    </resultMap>
+
+    <sql id="selectNotice">
+            select n.*,d.department_name from notice n left join department d on n.unit_department = d.department_id
+    </sql>
+
+    <select id="selectNoticeList" parameterType="Notice" resultMap="NoticeResult">
+        <include refid="selectNotice"/>
+        <where>
+            <if test="noticeTitle != null">and notice_title like concat('%', #{noticeTitle}, '%') </if>
+            <if test="createTime != null">and create_time = #{createTime}</if>
+            <if test="unitDepartment != null">and unit_department = #{unitDepartment}</if>
+            <if test="noticeType != null">and notice_type = #{noticeType}</if>
+            <if test="status != null">and status = #{status}</if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectNoticeById" parameterType="Long" resultMap="NoticeResult">
+        <include refid="selectNotice"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertNotice" parameterType="Notice">
+        insert into notice
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="noticeContent != null">notice_content,</if>
+            <if test="noticeTitle != null">notice_title,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="unitDepartment != null">unit_department,</if>
+            <if test="createTime != null">create_time,</if>
+        </trim>
+            <trim prefix="values (" suffix=")" suffixOverrides=",">
+                <if test="noticeContent != null">#{noticeContent},</if>
+                <if test="noticeTitle != null">#{noticeTitle},</if>
+                <if test="createTime != null">#{createTime},</if>
+                <if test="unitDepartment != null">#{unitDepartment},</if>
+                <if test="createTime != null">#{createTime},</if>
+            </trim>
+    </insert>
+
+    <update id="updateNotice" parameterType="Notice">
+        update notice
+        <set>
+            <if test="noticeContent != null">notice_content = #{noticeContent},</if>
+            <if test="noticeTitle != null">notice_title = #{noticeTitle},</if>
+            <if test="unitDepartment != null">unit_department = #{unitDepartment},</if>
+            <if test="status != null">status = #{status},</if>
+       </set>
+        where id = #{id}
+    </update>
+
+    <!-- 修改状态 -->
+    <update id="updateNoticeStatus" parameterType="Long">
+        update notice
+        set status = case
+                         when status = 0 then 1
+                         when status = 1 then 0
+                         else status
+            END
+        WHERE id = #{id};
+    </update>
+
+    <delete id="deleteNoticeByIds" parameterType="String">
+        delete from notice where id in
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

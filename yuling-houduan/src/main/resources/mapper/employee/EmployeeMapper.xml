@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yuling.mapper.employee.EmployeeMapper">
+    <!--  员工表的查询结果集  -->
+    <resultMap id="EmployeeResult" type="Employee">
+        <!-- 基本员工信息的映射 -->
+        <result property="jobNumber" column="job_number"/>
+        <result property="name" column="name"/>
+        <result property="gender" column="gender"/>
+        <result property="birthdate" column="birthdate"/>
+        <result property="phone" column="phone"/>
+        <result property="email" column="email"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="active" column="active"/>
+        <result property="bankCard" column="bank_card"/>
+        <result property="positionId" column="position_id"/>
+        <result property="departmentId" column="department_id"/>
+        <result property="avatar" column="avatar"/>
+        <result property="departmentName" column="department_name"/>
+        <result property="positionName" column="position_name"/>
+        <result property="fatherId" column="father_id"/>
+        <result property="permissionLevel" column="permission_level"/>
+    </resultMap>
+
+    <!--  部门信息结果集  -->
+    <resultMap id="DepartmentResult" type="Department">
+        <result property="departmentId" column="department_id"/>
+        <result property="departmentName" column="department_name"/>
+    </resultMap>
+    <!--  职位信息结果集  -->
+    <resultMap id="PositionResult" type="Position">
+        <result property="positionId" column="position_id"/>
+        <result property="positionName" column="position_name"/>
+    </resultMap>
+    <!-- 员工信息通用查询 -->
+    <sql id="selectEmployeeVo">
+        select e.*, d.department_name,d.father_id, p.position_name,p.permission_level
+        from employee e
+                 left join department d on e.department_id = d.department_id
+                 left join position p on e.position_id = p.position_id
+    </sql>
+    <!-- 员工列表查询 -->
+    <select id="selectEmployeeList" parameterType="Employee" resultMap="EmployeeResult">
+        <include refid="selectEmployeeVo"/>
+        <where>
+            <if test="true">e.position_id != 6</if>
+            <if test="jobNumber != null ">and e.job_number like concat('%', #{jobNumber}, '%')</if>
+            <if test="name != null  and name != ''">and e.name like concat('%', #{name}, '%')</if>
+            <if test="gender != null  and gender != ''">and e.gender = #{gender}</if>
+            <if test="userDepartmentId != null ">and d.department_id = #{userDepartmentId}</if>
+            <if test="userDepartmentFatherId != null ">and d.father_id = #{userDepartmentFatherId}</if>
+            <if test="positionId != null ">and e.position_id = #{positionId}</if>
+            <if test="userJobNumber != null ">and e.job_number != #{userJobNumber}</if>
+            <if test="userPositionId != null ">and e.position_id <![CDATA[<=]]> #{userPositionId}</if>
+        </where>
+        order by position_id desc
+    </select>
+    <!-- 单个员工信息查询 -->
+    <select id="selectEmployeeByJobNumber" parameterType="Long" resultMap="EmployeeResult">
+        <include refid="selectEmployeeVo"/>
+        where e.job_number = #{jobNumber}
+    </select>
+    <!--  重复数据判断  -->
+    <select id="existsPhone" resultType="boolean" parameterType="String">
+        SELECT EXISTS(SELECT 1 FROM employee WHERE phone = #{phone})
+    </select>
+
+    <select id="existsEmail" resultType="boolean" parameterType="String">
+        SELECT EXISTS(SELECT 1 FROM employee WHERE email = #{email})
+    </select>
+
+    <select id="existsBankCard" resultType="boolean" parameterType="String">
+        SELECT EXISTS(SELECT 1 FROM employee WHERE bank_card = #{bankCard})
+    </select>
+
+
+
+    <insert id="insertEmployee" parameterType="Employee">
+        insert into employee
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="jobNumber != null">job_number,</if>
+            <if test="name != null">name,</if>
+            <if test="gender != null">gender,</if>
+            <if test="birthdate != null">birthdate,</if>
+            <if test="phone != null">phone,</if>
+            <if test="email != null">email,</if>
+            <if test="departmentId != null">department_id,</if>
+            <if test="positionId != null">position_id,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="active != null">active,</if>
+            <if test="password != null">password,</if>
+            <if test="bankCard != null">bank_card,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="jobNumber != null">#{jobNumber},</if>
+            <if test="name != null">#{name},</if>
+            <if test="gender != null">#{gender},</if>
+            <if test="birthdate != null">#{birthdate},</if>
+            <if test="hireDate != null">#{hireDate},</if>
+            <if test="phone != null">#{phone},</if>
+            <if test="email != null">#{email},</if>
+            <if test="avatar != null">#{avatar},</if>
+            <if test="departmentId != null">#{departmentId},</if>
+            <if test="positionId != null">#{positionId},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="active != null">#{active},</if>
+            <if test="password != null">#{password},</if>
+            <if test="bankCard != null">#{bankCard},</if>
+        </trim>
+    </insert>
+<!--  导入数据  -->
+    <insert id="uploadEmployees" parameterType="list">
+        insert into employee
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="list[0].jobNumber != null">job_number,</if>
+            <if test="list[0].name != null">name,</if>
+            <if test="list[0].gender != null">gender,</if>
+            <if test="list[0].birthdate != null">birthdate,</if>
+            <if test="list[0].hireDate != null">hire_date,</if>
+            <if test="list[0].phone != null">phone,</if>
+            <if test="list[0].email != null">email,</if>
+            <if test="list[0].departmentId != null">department_id,</if>
+            <if test="list[0].positionId != null">position_id,</if>
+            <if test="list[0].createTime != null">create_time,</if>
+            <if test="list[0].updateTime != null">update_time,</if>
+            <if test="list[0].active != null">active,</if>
+            <if test="list[0].bankCard != null">bank_card,</if>
+        </trim>
+        values
+        <foreach collection="list" item="employee" separator=",">
+            <trim prefix="(" suffix=")" suffixOverrides=",">
+                <if test="employee.jobNumber != null">#{employee.jobNumber},</if>
+                <if test="employee.name != null">#{employee.name},</if>
+                <if test="employee.gender != null">#{employee.gender},</if>
+                <if test="employee.birthdate != null">#{employee.birthdate},</if>
+                <if test="employee.hireDate != null">#{employee.hireDate},</if>
+                <if test="employee.phone != null">#{employee.phone},</if>
+                <if test="employee.email != null">#{employee.email},</if>
+                <if test="employee.departmentId != null">#{employee.departmentId},</if>
+                <if test="employee.positionId != null">#{employee.positionId},</if>
+                <if test="employee.createTime != null">#{employee.createTime},</if>
+                <if test="employee.updateTime != null">#{employee.updateTime},</if>
+                <if test="employee.active != null">#{employee.active},</if>
+                <if test="employee.bankCard != null">#{employee.bankCard},</if>
+            </trim>
+        </foreach>
+    </insert>
+
+    <!--  修改员工信息  -->
+    <update id="updateEmployee" parameterType="Employee">
+        update employee
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="name != null">name = #{name},</if>
+            <if test="gender != null">gender = #{gender},</if>
+            <if test="birthdate != null">birthdate = #{birthdate},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="departmentId != null">department_id = #{departmentId},</if>
+            <if test="positionId != null">position_id = #{positionId},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="password != null">password = #{password},</if>
+            <if test="bankCard != null">bank_card = #{bankCard},</if>
+        </trim>
+        where job_number = #{jobNumber}
+    </update>
+    <!-- 修改员工状态 -->
+    <update id="updateEmployeeStatus" parameterType="Long">
+        UPDATE employee
+        SET active = CASE
+                         WHEN active = 0 THEN 1
+                         WHEN active = 1 THEN 0
+                         ELSE active
+            END
+        WHERE job_number = #{jobNumber};
+    </update>
+    <!--  更改员工头像  -->
+    <update id="updateAvatar" parameterType="Employee">
+        update employee
+        set avatar = #{avatar}
+        where job_number = #{jobNumber}
+    </update>
+    <delete id="deleteEmployeeByJobNumber" parameterType="Long">
+        delete
+        from employee
+        where job_number = #{jobNumber}
+    </delete>
+
+<!-- 批量删除   -->
+    <delete id="deleteEmployeeByJobNumbers" parameterType="String">
+        delete from employee where job_number in
+        <foreach item="jobNumber" collection="array" open="(" separator="," close=")">
+            #{jobNumber}
+        </foreach>
+    </delete>
+
+    <!-- 部门下拉框查询   -->
+    <select id="departmentList" resultMap="DepartmentResult" parameterType="Long">
+        select department_id, department_name,father_id from department
+        <where>
+            department_id != father_id
+            <if test="fatherId != null &amp;&amp;  fatherId != 0">and father_id = #{father_id}</if>
+        </where>
+    </select>
+    <!-- 职位下拉框查询   -->
+    <select id="positionList" resultMap="PositionResult" parameterType="Long">
+        select position_id, position_name from position
+        <where>
+            <if test="pid != null">and position_id <![CDATA[<]]> #{pid}</if>
+        </where>
+    </select>
+</mapper>
